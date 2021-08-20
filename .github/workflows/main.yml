@@ -1,29 +1,41 @@
-name: DevSecOps Workflow
-
+name: DevSecOps Workflow for MyVodafoneApp
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create a build-output file
-        run: echo "Build Job" > build-output.txt
-      
-      - name: Pass the file to the next job
-        uses: actions/upload-artifact@v2
-        with:
-          name: buildoutputfile
-          path: build-output.txt
-        if: always()
-
+      - run: |
+          echo "Build Job is going on"
+          sleep 20
   test:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: download the file from previous job
-        uses: actions/download-artifact@v2
-        with:
-          name: buildoutputfile
+      - run: |
+          echo "test Job is going on"
+          sleep 20
+  oast-retire:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Clone the Repository
+        uses: actions/checkout@v2
 
-      - name: Check weather file is created or not.
-        run: cat build-output.txt
+      - name: Install Retire.JS
+        run: npm install -g retire
+
+      - name: Install Node Modules
+        run: npm install
+
+      - name: run Retire.JS Scan
+        run: | 
+          retire --outputformat json --outputpath retire_output.json
+        continue-on-error: true
+
+  deployment:
+    runs-on: ubuntu-latest
+    needs: oast-retire
+    steps:
+      - run: |
+          echo "deployment Job is going on"
+          sleep 20
